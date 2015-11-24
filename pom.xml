@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+    http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.apache.avro.tools</groupId>
+    <artifactId>avro-tools-packaging</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <description>Avro Tools packaging</description>
+    <name>${artifactId}</name>
+
+    <url>https://github.com/killerwhile/avro-tools-packaging</url>
+
+    <developers>
+        <developer>
+            <id>bperroud</id>
+            <name>Benoit Perroud</name>
+            <email>bperroud@verisign.com</email>
+        </developer>
+    </developers>
+
+    <properties>
+        <maven.rpm.plugin.version>2.1-alpha-1</maven.rpm.plugin.version>
+        <avro.version>1.7.5</avro.version>
+
+        <!-- RPM Spec related -->
+        <rpm.copyright>2015, Verisign</rpm.copyright>
+        <rpm.group>Application/VSCC</rpm.group>
+        <rpm.root>/opt/avro/tools</rpm.root>
+        <rpm.username>root</rpm.username>
+        <rpm.groupname>root</rpm.groupname>
+        <rpm.targetos>el6</rpm.targetos>
+        <rpm.targetArch>x86_64</rpm.targetArch>
+        <rpm.distribution>${project.description}</rpm.distribution>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro-tools</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <version>1.9.1</version>
+                <executions>
+                    <execution>
+                        <id>parse-version</id>
+                        <goals>
+                            <goal>parse-version</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>2.8</version>
+                <executions>
+                    <execution>
+                        <id>copy-dependencies</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>copy-dependencies</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
+                            <overWriteReleases>false</overWriteReleases>
+                            <overWriteSnapshots>false</overWriteSnapshots>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                            <excludeTransitive>true</excludeTransitive>
+                            <stripVersion>true</stripVersion>
+                            <!--excludeArtifactIds></excludeArtifactIds-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>${maven.rpm.plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>attached-rpm</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <copyright>${rpm.copyright}</copyright>
+                    <distribution>${rpm.distribution}</distribution>
+                    <group>${rpm.group}</group>
+                    <needarch>${rpm.targetArch}</needarch>
+                    <classifier>${rpm.targetos}.${rpm.targetArch}</classifier>
+                    <name>${project.name}</name>
+                    <version>
+                        ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.${parsedVersion.incrementalVersion}-${avro.version}
+                    </version>
+                    <release>${rpmRelease}</release>
+                    <defineStatements>
+                        <defineStatement>_binaries_in_noarch_packages_terminate_build 0</defineStatement>
+                        <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+                    </defineStatements>
+                    <mappings>
+                        <mapping>
+                            <directory>${rpm.root}</directory>
+                            <filemode>0755</filemode>
+                            <username>${rpm.username}</username>
+                            <groupname>${rpm.groupname}</groupname>
+                        </mapping>
+                        <mapping>
+                            <directory>${rpm.root}/bin</directory>
+                            <recurseDirectories>true</recurseDirectories>
+                            <filemode>0755</filemode>
+                            <username>${rpm.username}</username>
+                            <groupname>${rpm.groupname}</groupname>
+                        </mapping>
+                        <mapping>
+                            <directory>${rpm.root}/lib</directory>
+                            <recurseDirectories>true</recurseDirectories>
+                            <filemode>0755</filemode>
+                            <username>${rpm.username}</username>
+                            <groupname>${rpm.groupname}</groupname>
+                            <sources>
+                                <source>
+                                    <location>${project.build.directory}/lib/</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        <mapping>
+                            <directory>${rpm.root}/bin</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>0755</filemode>
+                            <username>${rpm.username}</username>
+                            <groupname>${rpm.groupname}</groupname>
+                            <sources>
+                                <source>
+                                    <location>${project.basedir}/src/main/scripts</location>
+                                    <!-- This prevents RPM python build failure on Jenkins -->
+                                    <excludes>
+                                        <exclude>*.pyc</exclude>
+                                        <exclude>*.pyo</exclude>
+                                    </excludes>
+                                </source>
+                            </sources>
+                        </mapping>
+                    </mappings>
+
+  
+                                      <postinstallScriptlet>
+                                        <scriptFile>src/main/rpm/scriptlet/postinstall</scriptFile>
+                                        <fileEncoding>utf-8</fileEncoding>
+                                    </postinstallScriptlet>
+                                    <preremoveScriptlet>
+                                        <scriptFile>src/main/rpm/scriptlet/preuninstall</scriptFile>
+                                        <fileEncoding>utf-8</fileEncoding>
+                                    </preremoveScriptlet>
+
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>el5</id>
+            <properties>
+                <parcel.platform>el5</parcel.platform>
+            </properties>
+        </profile>
+    </profiles>
+</project>
