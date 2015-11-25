@@ -21,7 +21,9 @@
     </developers>
 
     <properties>
-        <maven.rpm.plugin.version>2.1-alpha-1</maven.rpm.plugin.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <maven.rpm.plugin.version>2.1.1</maven.rpm.plugin.version>
         <avro.version>1.7.5</avro.version>
 
         <!-- RPM Spec related -->
@@ -93,6 +95,7 @@
                     </execution>
                 </executions>
                 <configuration>
+                    <sourceEncoding>${project.build.sourceEncoding}</sourceEncoding>
                     <copyright>${rpm.copyright}</copyright>
                     <distribution>${rpm.distribution}</distribution>
                     <group>${rpm.group}</group>
