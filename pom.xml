@@ -23,12 +23,12 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <maven.rpm.plugin.version>2.1.1</maven.rpm.plugin.version>
+        <maven.rpm.plugin.version>2.1.4</maven.rpm.plugin.version>
         <avro.version>1.7.5</avro.version>
 
         <!-- RPM Spec related -->
-        <rpm.copyright>2015, Verisign</rpm.copyright>
-        <rpm.group>Application/VSCC</rpm.group>
+        <rpm.license>2015, DAPLAB</rpm.license>
+        <rpm.group>Application/DAPLAB</rpm.group>
         <rpm.root>/opt/avro/tools</rpm.root>
         <rpm.username>root</rpm.username>
         <rpm.groupname>root</rpm.groupname>
